@@ -1,0 +1,12 @@
+{
+  "id": "ekanban-autodev-check",
+  "name": "E-Kanban 自动开发检查 - 每10分钟检查任务进度",
+  "schedule": "0 */10 * * * *",
+  "timezone": "Asia/Shanghai",
+  "command": "cd /root/.openclaw/workspace/E-Kanban && ./scripts/auto-check-and-exec.sh",
+  "workingDirectory": "/root/.openclaw/workspace/E-Kanban",
+  "enabled": true,
+  "description": "定期检查 E-Kanban 开发进度，自动执行下一个待开发任务，如果有超时任务触发重新执行",
+  "maxRetries": 1,
+  "timeoutSeconds": 3600
+}

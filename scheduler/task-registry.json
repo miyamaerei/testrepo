@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "tasks": [
+    {
+      "taskId": "ekanban-automatic-development",
+      "name": "E-Kanban 自动开发执行",
+      "description": "自动增量开发 E-Kanban 项目，每次执行一个待开发任务，直到全部完成",
+      "priority": "P0",
+      "executionTaskPath": "/root/.openclaw/workspace/E-Kanban/scripts/auto-check-and-exec.sh",
+      "executorDescriptionPath": "/root/.openclaw/workspace/E-Kanban/docs/DEVELOPMENT-GUIDE.md",
+      "logPath": "/root/.openclaw/workspace/E-Kanban/cron/runs/{taskId}-$(date +%Y%m%d-%H%M%S).log",
+      "maxRetries": 3,
+      "enabled": true,
+      "state": {
+        "status": "PENDING",
+        "retryCount": 0,
+        "lastCheckedAt": null,
+        "lastExecutedAt": null,
+        "lastHeartbeatAt": null,
+        "error": null
+      },
+      "createdAt": "2026-04-01T11:37:00+08:00",
+      "updatedAt": "2026-04-01T11:37:00+08:00"
+    }
+  ]
+}

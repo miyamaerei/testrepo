@@ -1,0 +1,116 @@
+# Build result
+bin/
+obj/
+*/bin/
+*/obj/
+**/bin/
+**/obj/
+**/*bin*/
+**/*obj*/
+publish/
+
+# Visual Studio
+.vs/
+.vscode/
+*.suo
+*.sdf
+*.cache
+*.vspscc
+*.ssc
+*.user
+*.userosscache
+*.sln.docstates
+
+# Dnx
+.bak
+.project
+.lock
+.lock.json
+
+# NuGet
+*.nupkg
+packages/
+*.user
+
+# MSTest test Results
+[Bb]in/
+[Oo]bj/
+TestResult
+*.VisualState.xml
+Test.NetCore
+TestResult.xml
+
+# Build Results of an ATL Project
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Bb]uild/
+[Bb]uilds/
+*.aps
+*.pch
+*.vspx
+*.pgm
+*.pgc
+
+# .NET Core
+project.lock.json
+project.json.lock
+*.tmp
+*.log
+*.pidb
+*.soplugin
+.DS_Store
+._*
+Thumbs.db
+
+# User-specific files
+*.user
+*.suo
+*.userprefs
+*~
+*.log
+*.tmp
+
+# Web
+node_modules/
+**/node_modules/
+**/node_modules/*
+dist/
+**/dist/
+dist-ssr/
+**/dist-ssr/
+*.local
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+
+# Database
+*.mdf
+*.ldf
+*.bak
+
+# Output
+*.zip
+*.tar.gz
+*.rar
+
+# Docker
+.dockerignore
+
+# Ionide
+.fake/
+ paket-files
+ paket.lock
+
+# OS files
+Thumbs.db
+.DS_Store
