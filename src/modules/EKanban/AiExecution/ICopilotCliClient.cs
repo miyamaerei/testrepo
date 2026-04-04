@@ -1,9 +1,8 @@
 using System.Threading.Tasks;
 
-namespace EKanban.AiExecution
+namespace EKanban.AiExecution;
+
+public interface ICopilotCliClient
 {
-    public interface ICopilotCliClient
-    {
-        Task<string> ExecutePromptAsync(string prompt);
-    }
+    Task<string> ExecutePromptAsync(string prompt);
 }

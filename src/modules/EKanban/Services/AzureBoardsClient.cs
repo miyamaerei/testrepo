@@ -1,171 +1,205 @@
-using System.Linq;
-using System;
-using System.Collections.Generic;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Threading.Tasks;
-using EKanban.IServices;
-using Microsoft.Extensions.Configuration;
+using System.Text.Json;
 using Microsoft.Extensions.Logging;
-using VOL.Core.Extensions.AutofacManager;
-using VOL.Entity.DomainModels;
+using Microsoft.Extensions.Configuration;
+using EKanban.Models;
 
-namespace EKanban.Services
+namespace EKanban.Services;
+
+/// <summary>
+/// Azure Boards REST API 客户端
+/// </summary>
+public class AzureBoardsClient
 {
-    public class AzureBoardsClient : IAzureBoardsClient, IDependency
+    private readonly HttpClient _httpClient;
+    private readonly string _organizationUrl;
+    private readonly string _project;
+    private readonly ILogger<AzureBoardsClient> _logger;
+
+    public AzureBoardsClient(
+        IConfiguration config,
+        ILogger<AzureBoardsClient> logger)
     {
-        private readonly HttpClient _httpClient;
-        private readonly IConfiguration _configuration;
-        private readonly ILogger<AzureBoardsClient> _logger;
-        private readonly string _organization;
-        private readonly string _project;
-        private readonly string _personalAccessToken;
+        _organizationUrl = config.GetValue<string>("AzureBoards:OrganizationUrl") ?? string.Empty;
+        _project = config.GetValue<string>("AzureBoards:Project") ?? string.Empty;
+        var pat = config.GetValue<string>("AzureBoards:PersonalAccessToken") ?? string.Empty;
 
-        public AzureBoardsClient(
-            HttpClient httpClient,
-            IConfiguration configuration,
-            ILogger<AzureBoardsClient> logger)
+        _httpClient = new HttpClient();
+        var byteArray = System.Text.Encoding.ASCII.GetBytes($":{pat}");
+        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
+        _logger = logger;
+    }
+
+    /// <summary>
+    /// 获取所有工作项
+    /// </summary>
+    public async Task<List<AzureWorkItem>> GetAllWorkItemsAsync()
+    {
+        try
         {
-            _httpClient = httpClient;
-            _configuration = configuration;
-            _logger = logger;
-
-            _organization = _configuration["AzureBoards:Organization"];
-            _project = _configuration["AzureBoards:Project"];
-            _personalAccessToken = _configuration["AzureBoards:PersonalAccessToken"];
-
-            var baseUrl = $"https://dev.azure.com/{_organization}/{_project}/_apis/wit/";
-            _httpClient.BaseAddress = new Uri(baseUrl);
-
-            var authToken = Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($":{_personalAccessToken}"));
-            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", authToken);
-        }
-
-        public async Task<List<BoardWorkItem>> GetAllWorkItemsAsync()
-        {
-            var result = new List<BoardWorkItem>();
-            try
+            // WIQL 查询获取所有工作项 ID
+            var wiql = new
             {
-                // Wiql query to get all work items
-                var query = new
-                {
-                    query = "SELECT [System.Id], [System.Title], [System.State], [System.Description] FROM WorkItems WHERE [System.State] <> 'Completed' AND [System.State] <> 'Removed'"
-                };
+                query = @"SELECT [System.Id] FROM WorkItems WHERE [System.State] <> 'Removed' ORDER BY [System.ChangedDate] DESC"
+            };
 
-                var response = await _httpClient.PostAsJsonAsync("wiql?api-version=7.0", query);
-                response.EnsureSuccessStatusCode();
+            var wiqlResponse = await _httpClient.PostAsJsonAsync(
+                $"{_organizationUrl}/{_project}/_apis/wit/wiql?api-version=7.1-preview.2",
+                wiql);
 
-                var queryResult = await response.Content.ReadFromJsonAsync<WiqlQueryResult>();
-
-                foreach (var itemRef in queryResult.workItems)
-                {
-                    var workItem = await GetWorkItemByIdAsync(itemRef.id);
-                    if (workItem != null)
-                    {
-                        result.Add(workItem);
-                    }
-                }
-
-                _logger.LogInformation($"Successfully fetched {result.Count} work items from Azure Boards");
+            wiqlResponse.EnsureSuccessStatusCode();
+            var wiqlJson = await wiqlResponse.Content.ReadFromJsonAsync<WiqlResponse>();
+            
+            if (wiqlJson?.workItems == null || !wiqlJson.workItems.Any())
+            {
+                return new List<AzureWorkItem>();
             }
-            catch (Exception ex)
+
+            var ids = string.Join(',', wiqlJson.workItems.Select(w => w.id));
+            var workItemsResponse = await _httpClient.GetAsync(
+                $"{_organizationUrl}/{_project}/_apis/wit/workitems?ids={ids}&$expand=all&api-version=7.1-preview.3");
+
+            workItemsResponse.EnsureSuccessStatusCode();
+            var workItemsJson = await workItemsResponse.Content.ReadFromJsonAsync<WorkItemsResponse>();
+
+            var result = new List<AzureWorkItem>();
+            foreach (var item in workItemsJson?.value ?? Enumerable.Empty<WorkItemJson>())
             {
-                _logger.LogError(ex, "Failed to get work items from Azure Boards");
+                var workItem = new AzureWorkItem
+                {
+                    Id = item.id,
+                    Title = GetField(item.fields, "System.Title"),
+                    Description = GetField(item.fields, "System.Description"),
+                    State = GetField(item.fields, "System.State"),
+                    ChangedDate = GetDateTimeField(item.fields, "System.ChangedDate") ?? DateTime.UtcNow
+                };
+                result.Add(workItem);
             }
 
             return result;
         }
-
-        public async Task<BoardWorkItem> GetWorkItemByIdAsync(int azureWorkItemId)
+        catch (Exception ex)
         {
-            try
-            {
-                var response = await _httpClient.GetAsync($"workitems/{azureWorkItemId}?api-version=7.0&$expand=fields");
-                response.EnsureSuccessStatusCode();
-
-                var item = await response.Content.ReadFromJsonAsync<AzureWorkItem>();
-
-                var boardWorkItem = new BoardWorkItem
-                {
-                    AzureWorkItemId = azureWorkItemId,
-                    Title = item.fields["System.Title"]?.ToString() ?? string.Empty,
-                    Description = item.fields.ContainsKey("System.Description") ? item.fields["System.Description"]?.ToString() : null,
-                    AzureState = item.fields["System.State"]?.ToString() ?? string.Empty,
-                    Url = $"https://dev.azure.com/{_organization}/{_project}/_workitems/edit/{azureWorkItemId}",
-                    CreatedDate = DateTime.UtcNow,
-                    LastSyncDate = DateTime.UtcNow
-                };
-
-                return boardWorkItem;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Failed to get work item {azureWorkItemId} from Azure Boards");
-                return null;
-            }
-        }
-
-        public async Task AddCommentAsync(int azureWorkItemId, string comment)
-        {
-            try
-            {
-                var commentRequest = new
-                {
-                    text = comment
-                };
-
-                await _httpClient.PostAsJsonAsync($"workitems/{azureWorkItemId}/comments?api-version=7.1-preview.1", commentRequest);
-                _logger.LogInformation($"Added comment to work item {azureWorkItemId}");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Failed to add comment to work item {azureWorkItemId}");
-            }
-        }
-
-        public async Task UpdateStateAsync(int azureWorkItemId, string state)
-        {
-            try
-            {
-                var patchDocument = new List<object>
-                {
-                    new
-                    {
-                        op = "replace",
-                        path = "/fields/System.State",
-                        value = state
-                    }
-                };
-
-                var request = new HttpRequestMessage(new HttpMethod("PATCH"), $"workitems/{azureWorkItemId}?api-version=7.0")
-                {
-                    Content = JsonContent.Create(patchDocument)
-                };
-
-                var response = await _httpClient.SendAsync(request);
-                response.EnsureSuccessStatusCode();
-                _logger.LogInformation($"Updated state to {state} for work item {azureWorkItemId}");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Failed to update state for work item {azureWorkItemId}");
-            }
-        }
-
-        // Response classes for Azure API
-        private class WiqlQueryResult
-        {
-            public List<WorkItemRef> workItems { get; set; }
-        }
-
-        private class WorkItemRef
-        {
-            public int id { get; set; }
-        }
-
-        private class AzureWorkItem
-        {
-            public Dictionary<string, object> fields { get; set; } = new Dictionary<string, object>();
+            _logger.LogError(ex, "Failed to get work items from Azure Boards");
+            throw;
         }
     }
+
+    /// <summary>
+    /// 添加评论到工作项
+    /// </summary>
+    public async Task AddCommentAsync(int workItemId, string comment)
+    {
+        try
+        {
+            var url = $"{_organizationUrl}/{_project}/_apis/wit/workitems/{workItemId}/comments?api-version=7.1-preview.3";
+            var content = new[]
+            {
+                new
+                {
+                    text = comment
+                }
+            };
+
+            var response = await _httpClient.PostAsJsonAsync(url, content);
+            response.EnsureSuccessStatusCode();
+            _logger.LogInformation("Added comment to work item {WorkItemId}", workItemId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to add comment to work item {WorkItemId}", workItemId);
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// 更新工作项状态
+    /// </summary>
+    public async Task UpdateStateAsync(int workItemId, string state)
+    {
+        try
+        {
+            var url = $"{_organizationUrl}/{_project}/_apis/wit/workitems/{workItemId}?api-version=7.1-preview.3";
+            var patchDocument = new[]
+            {
+                new
+                {
+                    op = "replace",
+                    path = "/fields/System.State",
+                    value = state
+                }
+            };
+
+            var content = JsonContent.Create(patchDocument);
+            var response = await _httpClient.PatchAsync(url, content);
+            response.EnsureSuccessStatusCode();
+            _logger.LogInformation("Updated state to {State} for work item {WorkItemId}", state, workItemId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update state for work item {WorkItemId}", workItemId);
+            throw;
+        }
+    }
+
+    private string GetField(Dictionary<string, JsonElement> fields, string fieldName)
+    {
+        if (fields.TryGetValue(fieldName, out var value) && value.ValueKind == JsonValueKind.String)
+        {
+            return value.GetString() ?? string.Empty;
+        }
+        return string.Empty;
+    }
+
+    private DateTime? GetDateTimeField(Dictionary<string, JsonElement> fields, string fieldName)
+    {
+        if (fields.TryGetValue(fieldName, out var value))
+        {
+            if (value.ValueKind == JsonValueKind.String)
+            {
+                var str = value.GetString();
+                if (DateTime.TryParse(str, out var date))
+                {
+                    return date;
+                }
+            }
+        }
+        return null;
+    }
+}
+
+/// <summary>
+/// Azure 工作项DTO
+/// </summary>
+public class AzureWorkItem
+{
+    public int Id { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public string State { get; set; } = string.Empty;
+    public DateTime ChangedDate { get; set; }
+}
+
+// JSON 响应模型
+public class WiqlResponse
+{
+    public List<WiqlWorkItem> workItems { get; set; } = new();
+}
+
+public class WiqlWorkItem
+{
+    public int id { get; set; }
+}
+
+public class WorkItemsResponse
+{
+    public List<WorkItemJson> value { get; set; } = new();
+}
+
+public class WorkItemJson
+{
+    public int id { get; set; }
+    public Dictionary<string, JsonElement> fields { get; set; } = new();
 }

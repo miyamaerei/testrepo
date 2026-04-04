@@ -1,14 +1,12 @@
 using System.Threading.Tasks;
-using VOL.Core.BaseProvider;
-using VOL.Entity.DomainModels;
+using EKanban.Models;
 
-namespace EKanban.IServices
+namespace EKanban.IServices;
+
+public interface IStateMachineService
 {
-    public interface IStateMachineService
-    {
-        Task<bool> CanTransitionAsync(ExecutionCard card, ExecutionCardStatus newStatus);
-        Task TransitionToAsync(ExecutionCard card, ExecutionCardStatus newStatus);
-        Task StartAiExecutionAsync(ExecutionCard card);
-        Task CompleteAiExecutionAsync(ExecutionCard card, bool isSpecPassed);
-    }
+    Task<bool> CanTransitionAsync(ExecutionCard card, ExecutionCardStatus newStatus);
+    Task TransitionToAsync(ExecutionCard card, ExecutionCardStatus newStatus);
+    Task StartAiExecutionAsync(ExecutionCard card);
+    Task CompleteAiExecutionAsync(ExecutionCard card, bool isSpecPassed);
 }

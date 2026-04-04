@@ -1,12 +1,8 @@
+using EKanban.Models;
 using VOL.Core.BaseProvider;
-using VOL.Entity.DomainModels;
-using System.Threading.Tasks;
 
-namespace EKanban.IRepositories
+namespace EKanban.IRepositories;
+
+public interface IExecutionRunRepository : IRepository<ExecutionRun>
 {
-    public partial interface IExecutionRunRepository : IRepository<ExecutionRun>
-    {
-        Task<ExecutionRun> FindOneAsync(int id);
-        Task AddAsync(ExecutionRun run);
-    }
 }

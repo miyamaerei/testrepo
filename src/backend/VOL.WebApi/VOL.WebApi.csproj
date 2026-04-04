@@ -30,7 +30,6 @@
 
   <ItemGroup>
     <ProjectReference Include="../../modules/EKanban/EKanban.csproj" />
-    <ProjectReference Include="../../modules/E-Kanban.Backend/E-Kanban.Backend.csproj" />
     <ProjectReference Include="../../../src/core/VOL.Builder/VOL.Builder.csproj" />
     <ProjectReference Include="../../../src/core/VOL.Core/VOL.Core.csproj" />
     <ProjectReference Include="../../../src/core/VOL.Entity/VOL.Entity.csproj" />

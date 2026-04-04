@@ -1,11 +1,8 @@
+using EKanban.Models;
 using VOL.Core.BaseProvider;
-using VOL.Entity.DomainModels;
-using System.Threading.Tasks;
 
-namespace EKanban.IRepositories
+namespace EKanban.IRepositories;
+
+public interface ISpecEvaluationRepository : IRepository<SpecEvaluation>
 {
-    public partial interface ISpecEvaluationRepository : IRepository<SpecEvaluation>
-    {
-        Task AddAsync(SpecEvaluation evaluation);
-    }
 }

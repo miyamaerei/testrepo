@@ -1,10 +1,9 @@
 using System.Threading.Tasks;
-using VOL.Entity.DomainModels;
+using EKanban.Models;
 
-namespace EKanban.AiExecution
+namespace EKanban.AiExecution;
+
+public interface IAiExecutionService
 {
-    public interface IAiExecutionService
-    {
-        Task ExecuteAiTaskAsync(ExecutionCard card);
-    }
+    Task ExecuteAiTaskAsync(ExecutionCard card);
 }

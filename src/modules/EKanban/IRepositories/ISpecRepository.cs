@@ -1,12 +1,8 @@
+using EKanban.Models;
 using VOL.Core.BaseProvider;
-using VOL.Entity.DomainModels;
-using System.Threading.Tasks;
 
-namespace EKanban.IRepositories
+namespace EKanban.IRepositories;
+
+public interface ISpecRepository : IRepository<Spec>
 {
-    public partial interface ISpecRepository : IRepository<Spec>
-    {
-        Task<Spec> FindOneAsync(int id);
-        Task AddAsync(Spec spec);
-    }
 }

@@ -1,10 +1,8 @@
 using System.Threading.Tasks;
-using VOL.Core.BaseProvider;
 
-namespace EKanban.IServices
+namespace EKanban.IServices;
+
+public interface IAiTaskCheckService
 {
-    public interface IAiTaskCheckService
-    {
-        Task CheckInProgressTasksAsync();
-    }
+    Task CheckInProgressTasksAsync();
 }

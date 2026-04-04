@@ -6,6 +6,7 @@ using System;
  *代码由框架生成,此处任何更改都可能导致被代码生成器覆盖
  *所有业务编写全部应在Partial文件夹下ExecutionTaskService与IExecutionTaskService中编写
  */
+using EKanban.Models;
 using EKanban.IRepositories;
 using EKanban.IServices;
 using VOL.Core.BaseProvider;
@@ -14,7 +15,7 @@ using VOL.Entity.DomainModels;
 
 namespace EKanban.Services
 {
-    public partial class ExecutionTaskService : ServiceBase<ExecutionTask, IExecutionTaskRepository>
+    public partial class ExecutionTaskService : ServiceBase<EKanban.Models.ExecutionTask, IExecutionTaskRepository>
     , IExecutionTaskService, IDependency
     {
         public ExecutionTaskService(IExecutionTaskRepository repository)

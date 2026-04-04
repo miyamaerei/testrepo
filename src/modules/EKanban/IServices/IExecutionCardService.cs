@@ -1,3 +1,4 @@
+using EKanban.Models;
 using VOL.Core.BaseProvider;
 using VOL.Entity.DomainModels;
 using VOL.Core.Utilities;
@@ -7,9 +8,9 @@ using EKanban.IRepositories;
 
 namespace EKanban.IServices
 {
-    public partial interface IExecutionCardService : IService<ExecutionCard>
+    public partial interface IExecutionCardService : IService<EKanban.Models.ExecutionCard>
     {
-        Task<List<ExecutionCard>> GetInProgressAiCardsAsync();
+        Task<List<EKanban.Models.ExecutionCard>> GetInProgressAiCardsAsync();
         Task TriggerReExecuteAsync(int cardId);
     }
 }

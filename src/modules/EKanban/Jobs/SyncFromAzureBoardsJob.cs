@@ -1,38 +1,33 @@
-using System.Linq;
-using System;
-using System.Threading.Tasks;
-using Quartz;
 using EKanban.IServices;
 using Microsoft.Extensions.Logging;
 
-namespace EKanban.Jobs
+namespace EKanban.Jobs;
+
+public class SyncFromAzureBoardsJob
 {
-    public class SyncFromAzureBoardsJob : IJob
+    private readonly ISyncService _syncService;
+    private readonly ILogger<SyncFromAzureBoardsJob> _logger;
+
+    public SyncFromAzureBoardsJob(
+        ISyncService syncService,
+        ILogger<SyncFromAzureBoardsJob> logger)
     {
-        private readonly ISyncService _syncService;
-        private readonly ILogger<SyncFromAzureBoardsJob> _logger;
+        _syncService = syncService;
+        _logger = logger;
+    }
 
-        public SyncFromAzureBoardsJob(
-            ISyncService syncService,
-            ILogger<SyncFromAzureBoardsJob> logger)
+    public async Task RunAsync()
+    {
+        _logger.LogInformation("Starting scheduled sync from Azure Boards");
+        try
         {
-            _syncService = syncService;
-            _logger = logger;
+            await _syncService.SyncFromAzureBoardsAsync();
+            _logger.LogInformation("Scheduled sync from Azure Boards completed successfully");
         }
-
-        public async Task Execute(IJobExecutionContext context)
+        catch (Exception ex)
         {
-            _logger.LogInformation("Starting scheduled sync from Azure Boards");
-            try
-            {
-                await _syncService.SyncFromAzureBoardsAsync();
-                _logger.LogInformation("Scheduled sync from Azure Boards completed successfully");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Scheduled sync from Azure Boards failed");
-                // Don't throw, job will be marked as failed but don't break the scheduler
-            }
+            _logger.LogError(ex, "Scheduled sync from Azure Boards failed");
+            // Don't throw - Hangfire will mark it as failed
         }
     }
 }

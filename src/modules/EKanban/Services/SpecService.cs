@@ -6,6 +6,7 @@ using System;
  *代码由框架生成,此处任何更改都可能导致被代码生成器覆盖
  *所有业务编写全部应在Partial文件夹下SpecService与ISpecService中编写
  */
+using EKanban.Models;
 using EKanban.IRepositories;
 using EKanban.IServices;
 using VOL.Core.BaseProvider;
@@ -14,7 +15,7 @@ using VOL.Entity.DomainModels;
 
 namespace EKanban.Services
 {
-    public partial class SpecService : ServiceBase<Spec, ISpecRepository>
+    public partial class SpecService : ServiceBase<EKanban.Models.Spec, ISpecRepository>
     , ISpecService, IDependency
     {
         public SpecService(ISpecRepository repository)

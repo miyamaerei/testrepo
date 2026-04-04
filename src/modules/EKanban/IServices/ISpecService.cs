@@ -1,10 +1,11 @@
+using EKanban.Models;
 using VOL.Core.BaseProvider;
 using VOL.Entity.DomainModels;
 using EKanban.IRepositories;
 
 namespace EKanban.IServices
 {
-    public partial interface ISpecService : IService<Spec>
+    public partial interface ISpecService : IService<EKanban.Models.Spec>
     {
     }
 }

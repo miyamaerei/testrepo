@@ -1,21 +1,14 @@
 using SqlSugar;
-using VOL.Core.DbContext;
 using VOL.Core.BaseProvider;
-using VOL.Entity.DomainModels;
+using VOL.Core.DbContext;
+using EKanban.Models;
 using EKanban.IRepositories;
-using System.Threading.Tasks;
 
-namespace EKanban.Repositories
+namespace EKanban.Repositories;
+
+public class SpecEvaluationRepository : RepositoryBase<SpecEvaluation>, ISpecEvaluationRepository
 {
-    public partial class SpecEvaluationRepository : RepositoryBase<SpecEvaluation>, ISpecEvaluationRepository
+    public SpecEvaluationRepository(VOLContext dbContext) : base(dbContext)
     {
-        public SpecEvaluationRepository(VOLContext dbContext) : base(dbContext)
-        {
-        }
-
-        public async Task AddAsync(SpecEvaluation evaluation)
-        {
-            await DbContext.Insertable(evaluation).ExecuteCommandAsync();
-        }
     }
 }

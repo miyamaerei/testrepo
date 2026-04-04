@@ -1,15 +1,9 @@
+using EKanban.Models;
 using VOL.Core.BaseProvider;
-using VOL.Entity.DomainModels;
-using System;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
 
-namespace EKanban.IRepositories
+namespace EKanban.IRepositories;
+
+public interface IBoardWorkItemRepository : IRepository<BoardWorkItem>
 {
-    public partial interface IBoardWorkItemRepository : IRepository<BoardWorkItem>
-    {
-        Task<BoardWorkItem> FindSingleAsync(Expression<Func<BoardWorkItem, bool>> predicate);
-        Task AddAsync(BoardWorkItem item);
-        Task UpdateAsync(BoardWorkItem item);
-    }
+    Task<BoardWorkItem?> FindByExternalIdAsync(int externalId);
 }

@@ -1,3 +1,4 @@
+using EKanban.Models;
 using EKanban.IServices;
 using VOL.Core.BaseProvider;
 using VOL.Entity.DomainModels;
@@ -9,14 +10,14 @@ namespace EKanban.Services
 {
     public partial class ExecutionCardService : IExecutionCardService
     {
-        public async Task<List<ExecutionCard>> GetInProgressAiCardsAsync()
+        public async Task<List<EKanban.Models.ExecutionCard>> GetInProgressAiCardsAsync()
         {
             return await ((IExecutionCardRepository)repository).GetInProgressAiCardsAsync();
         }
 
         public async Task TriggerReExecuteAsync(int cardId)
         {
-            var card = await ((IExecutionCardRepository)repository).FindOneAsync(cardId);
+            var card = await ((IExecutionCardRepository)repository).FindFirstAsync(c => c.Id == cardId);
             if (card == null)
             {
                 throw new System.ArgumentException($"Card {cardId} not found");
@@ -30,18 +31,20 @@ namespace EKanban.Services
             }
 
             // Transition back to Ready to trigger another execution
-            if (card.Status == (int)ExecutionCardStatus.InProgress)
+            if (card.Status == EKanban.Models.ExecutionCardStatus.InProgress)
             {
                 // Already in progress, just reset the start time
                 card.InProgressStartTime = System.DateTime.UtcNow;
-                await ((IExecutionCardRepository)repository).UpdateAsync(card);
+                ((IExecutionCardRepository)repository).Update<EKanban.Models.ExecutionCard>(card, (string[])null!, false);
+                await ((IExecutionCardRepository)repository).SaveChangesAsync();
             }
-            else if (card.Status != (int)ExecutionCardStatus.Completed)
+            else if (card.Status != EKanban.Models.ExecutionCardStatus.Completed)
             {
                 // Go back to Ready
-                card.Status = (int)ExecutionCardStatus.Ready;
+                card.Status = EKanban.Models.ExecutionCardStatus.Ready;
                 card.LastUpdated = System.DateTime.UtcNow;
-                await ((IExecutionCardRepository)repository).UpdateAsync(card);
+                ((IExecutionCardRepository)repository).Update<EKanban.Models.ExecutionCard>(card, (string[])null!, false);
+                await ((IExecutionCardRepository)repository).SaveChangesAsync();
             }
         }
     }
