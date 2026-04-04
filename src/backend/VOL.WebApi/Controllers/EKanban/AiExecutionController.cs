@@ -24,13 +24,13 @@ namespace VOL.WebApi.Controllers.EKanban
         [HttpPost]
         public async Task<IActionResult> TriggerExecution(int id)
         {
-            var card = await _executionCardRepository.FindOneAsync(id);
+            var card = await _executionCardRepository.FindFirstAsync(X=>X.Id==id);
             if (card == null)
             {
                 return BadRequest(new { message = "Card not found" });
             }
 
-            if (card.Status != (int)ExecutionCardStatus.Ready)
+            if ((int)card.Status != (int)ExecutionCardStatus.Ready)
             {
                 return BadRequest(new { message = "Card is not in Ready state" });
             }
