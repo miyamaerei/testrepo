@@ -21,34 +21,12 @@
           <div class="input-icon el-icon-lock"></div>
           <input type="password" v-focus v-model="userInfo.password" :placeholder="$ts(['请输入', '密码'])" />
         </div>
-        <div class="item">
-          <div class="input-icon el-icon-mobile"></div>
-
-          <input v-focus type="text" v-model="userInfo.verificationCode" :placeholder="$ts(['请输入', '验证码'])" />
-          <div class="code" @click="getVierificationCode">
-            <img v-show="codeImgSrc != ''" :src="codeImgSrc" />
-          </div>
-        </div>
       </div>
       <div class="loging-btn">
         <el-button size="large" :loading="loading" color="#3a6cd1" :dark="true" @click="login" long>
           <span v-if="!loading">{{ $ts("登录") }}</span>
           <span v-else>{{ $ts("正在登录") }}...</span>
         </el-button>
-      </div>
-      <div class="app-link">
-        <a href="#" style="text-decoration: none">移动端扫码</a>
-        <a>
-          <i class="el-icon-chat-dot-round"></i> 小程序
-          <img src="https://app-1256993465.cos.ap-nanjing.myqcloud.com/wechat.jpg" /></a>
-        <a>
-          <i class="el-icon-apple"></i>
-          Android
-          <img src="https://app-1256993465.cos.ap-nanjing.myqcloud.com/Android.png" /></a>
-        <a>
-          <i class="el-icon-document"></i>
-          H5
-          <img src="https://app-1256993465.cos.ap-nanjing.myqcloud.com/H5.png" /></a>
       </div>
       <!-- 账号信息 -->
       <div class="account-info">
@@ -84,7 +62,6 @@ const codeImgSrc = ref("");
 const userInfo = reactive({
   userName: "",
   password: "",
-  verificationCode: "",
   UUID: undefined,
 });
 
@@ -103,9 +80,6 @@ let $ts = proxy.$ts;
 const login = () => {
   if (!userInfo.userName) return $message.error($ts(["请输入", "账号"]));
   if (!userInfo.password) return $message.error($ts(["请输入", "密码"]));
-  if (!userInfo.verificationCode) {
-    return $message.error($ts(["请输入", "验证码"]));
-  }
   loading.value = true;
   http.post("/api/user/login", userInfo, $ts("正在登录") + "....").then((result) => {
     if (!result.status) {

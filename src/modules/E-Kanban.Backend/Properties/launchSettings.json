@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "E-Kanban.Backend": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:65258;http://localhost:65259"
+    }
+  }
+}
