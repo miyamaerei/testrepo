@@ -11,6 +11,6 @@ namespace EKanban.Specs
     public class SpecEvaluationResult
     {
         public bool IsPassed { get; set; }
-        public string EvaluationResult { get; set; }
+        public string EvaluationResult { get; set; } = string.Empty;
     }
 }
