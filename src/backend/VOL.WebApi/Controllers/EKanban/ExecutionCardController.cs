@@ -62,5 +62,89 @@ namespace VOL.WebApi.Controllers.EKanban
             // Actual transition will happen when scheduler runs
             return Ok(new { message = "Re-trigger scheduled" });
         }
+
+        /// <summary>
+        /// 手动创建看板卡片
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> CreateManualCard([FromBody] ManualCardCreateRequest request)
+        {
+            try
+            {
+                var card = await _service.CreateManualCardAsync(request);
+                return Ok(card);
+            }
+            catch (System.ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, new { message = "创建失败: " + ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 编辑手动看板卡片
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> UpdateManualCard([FromBody] ManualCardUpdateRequest request)
+        {
+            try
+            {
+                var card = await _service.UpdateManualCardAsync(request);
+                return Ok(card);
+            }
+            catch (System.ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, new { message = "更新失败: " + ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 删除手动看板卡片
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> DeleteManualCard(int id)
+        {
+            try
+            {
+                await _service.DeleteManualCardAsync(id);
+                return Ok(new { message = "删除成功" });
+            }
+            catch (System.ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, new { message = "删除失败: " + ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 获取所有手动创建的看板卡片（支持分页和筛选）
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> GetManualCards(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] string? search = null,
+            [FromQuery] int? status = null)
+        {
+            try
+            {
+                var (items, total) = await _service.GetManualCardsAsync(page, pageSize, search, status);
+                return Ok(new { total, items });
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, new { message = "获取卡片列表失败: " + ex.Message });
+            }
+        }
     }
 }

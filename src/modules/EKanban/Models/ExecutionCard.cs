@@ -137,4 +137,9 @@ public class ExecutionCard : BaseEntity
     /// 关联的项目仓库 ID
     /// </summary>
     public int? ProjectRepositoryId { get; set; }
+
+    /// <summary>
+    /// 是否手动创建（true: 手动创建, false: Azure同步）
+    /// </summary>
+    public bool IsManualCreated { get; set; } = false;
 }

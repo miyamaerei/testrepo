@@ -118,6 +118,40 @@ namespace VOL.Entity.DomainModels
         [Column(TypeName = "datetime")]
         [Required(AllowEmptyStrings = false)]
         public DateTime LastUpdated { get; set; }
+
+        /// <summary>
+        ///是否手动创建（true: 手动创建, false: Azure同步）
+        /// </summary>
+        [Display(Name = "IsManualCreated")]
+        [Column(TypeName = "bit")]
+        [Editable(true)]
+        [Required(AllowEmptyStrings = false)]
+        public bool IsManualCreated { get; set; } = false;
+
+        /// <summary>
+        ///看板ID
+        /// </summary>
+        [Display(Name = "BoardId")]
+        [MaxLength(200)]
+        [Column(TypeName = "nvarchar(200)")]
+        [Editable(true)]
+        public string BoardId { get; set; }
+
+        /// <summary>
+        ///项目仓库ID
+        /// </summary>
+        [Display(Name = "ProjectRepositoryId")]
+        [Column(TypeName = "int")]
+        [Editable(true)]
+        public int? ProjectRepositoryId { get; set; }
+
+        /// <summary>
+        ///规格ID
+        /// </summary>
+        [Display(Name = "SpecId")]
+        [Column(TypeName = "int")]
+        [Editable(true)]
+        public int? SpecId { get; set; }
     }
 
     /// <summary>

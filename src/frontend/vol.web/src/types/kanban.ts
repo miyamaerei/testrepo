@@ -87,6 +87,7 @@ export interface ExecutionCard {
   Status: ExecutionCardStatus;
   ExecutorType: ExecutorType;
   BoardWorkItemId: number;
+  BoardId: string;
   ProjectRepositoryId?: number;
   SpecId?: number;
   FailureCount: number;
@@ -94,6 +95,26 @@ export interface ExecutionCard {
   InProgressStartedAt?: Date;
   CreatedAt: Date;
   UpdatedAt: Date;
+  IsManualCreated: boolean;
+}
+
+// 手动看板创建请求类型
+export interface ManualCardCreateRequest {
+  title: string;
+  description?: string;
+  boardId?: string;
+  projectRepositoryId?: number;
+  specId?: number;
+}
+
+// 手动看板更新请求类型
+export interface ManualCardUpdateRequest {
+  id: number;
+  title: string;
+  description?: string;
+  boardId?: string;
+  projectRepositoryId?: number;
+  specId?: number;
 }
 
 // 看板数据按状态分组
@@ -105,3 +126,23 @@ export interface ExecutionCardDetail extends ExecutionCard {
   phaseProgressList: TaskPhaseProgress[];
   fileChangeList: TaskFileChange[];
 }
+
+// 执行卡片状态文本映射
+export const ExecutionCardStatusText = {
+  [ExecutionCardStatus.New]: '新建',
+  [ExecutionCardStatus.Ready]: '就绪',
+  [ExecutionCardStatus.InProgress]: '进行中',
+  [ExecutionCardStatus.Submitted]: '已提交',
+  [ExecutionCardStatus.Completed]: '已完成',
+  [ExecutionCardStatus.Failed]: '失败'
+};
+
+// 执行卡片状态标签类型映射
+export const ExecutionCardStatusTagType = {
+  [ExecutionCardStatus.New]: 'info',
+  [ExecutionCardStatus.Ready]: 'primary',
+  [ExecutionCardStatus.InProgress]: 'warning',
+  [ExecutionCardStatus.Submitted]: 'success',
+  [ExecutionCardStatus.Completed]: 'success',
+  [ExecutionCardStatus.Failed]: 'danger'
+};

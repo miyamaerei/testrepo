@@ -1,9 +1,14 @@
 <template>
-  <el-card class="kanban-card" :class="{ 'needs-manual': card.NeedsManualIntervention }">
+  <el-card class="kanban-card" :class="{ 'needs-manual': card.NeedsManualIntervention, 'manual-created': card.IsManualCreated }">
     <template #header>
       <div class="card-header">
         <span class="card-title">{{ card.Title }}</span>
-        <el-tag :type="getTagType(card.Status)">{{ getStatusText(card.Status) }}</el-tag>
+        <div class="header-right">
+          <el-tag v-if="card.IsManualCreated" size="small" type="info" style="margin-right: 8px">
+            手动创建
+          </el-tag>
+          <el-tag :type="getTagType(card.Status)">{{ getStatusText(card.Status) }}</el-tag>
+        </div>
       </div>
     </template>
 
@@ -130,6 +135,15 @@ const onViewDetail = () => {
 
 .kanban-card.needs-manual {
   border: 2px solid #e6a23c;
+}
+
+.kanban-card.manual-created {
+  border-left: 4px solid #409eff;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
 }
 
 .card-header {

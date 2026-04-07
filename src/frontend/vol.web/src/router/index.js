@@ -78,6 +78,12 @@ const routes = [
             name: 'projectList',
             component: () => import('@/views/Project/Index.vue'),
             meta: { title: '项目管理', icon: 'el-icon-folder' }
+          },
+          {
+            path: 'manual',
+            name: 'manualKanban',
+            component: () => import('@/views/Kanban/ManualKanbanPage.vue'),
+            meta: { title: '手动看板管理', icon: 'el-icon-edit' }
           }
         ]
       }

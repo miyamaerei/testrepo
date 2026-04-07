@@ -41,6 +41,44 @@ export function triggerAiExecution(id: number) {
   return request.post(`/api/ekanban/AiExecution/TriggerExecution?id=${id}`);
 }
 
+// 手动创建看板卡片
+export function createManualCard(data: {
+  title: string;
+  description?: string;
+  boardId?: string;
+  projectRepositoryId?: number;
+  specId?: number;
+}) {
+  return request.post("/api/ekanban/ExecutionCard/CreateManualCard", data);
+}
+
+// 编辑手动看板卡片
+export function updateManualCard(data: {
+  id: number;
+  title: string;
+  description?: string;
+  boardId?: string;
+  projectRepositoryId?: number;
+  specId?: number;
+}) {
+  return request.post("/api/ekanban/ExecutionCard/UpdateManualCard", data);
+}
+
+// 删除手动看板卡片
+export function deleteManualCard(id: number) {
+  return request.post(`/api/ekanban/ExecutionCard/DeleteManualCard?id=${id}`);
+}
+
+// 获取所有手动创建的看板卡片
+export function getManualCards(params: {
+  page: number;
+  pageSize: number;
+  search?: string;
+  status?: number;
+}) {
+  return request.get("/api/ekanban/ExecutionCard/GetManualCards", { params });
+}
+
 export default {
   getKanbanData,
   getExecutionCardById,
@@ -50,4 +88,8 @@ export default {
   triggerReExecute,
   triggerSyncFromAzureBoards,
   triggerAiExecution,
+  createManualCard,
+  updateManualCard,
+  deleteManualCard,
+  getManualCards
 };
