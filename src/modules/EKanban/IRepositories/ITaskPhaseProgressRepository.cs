@@ -1,9 +1,10 @@
 using EKanban.Models;
 using VOL.Core.BaseProvider;
+using VOL.Core.Extensions.AutofacManager;
 
 namespace EKanban.IRepositories;
 
-public interface ITaskPhaseProgressRepository : IRepository<TaskPhaseProgress>
+public interface ITaskPhaseProgressRepository : IRepository<TaskPhaseProgress>, IDependency
 {
     /// <summary>
     /// 根据执行卡片 ID 获取所有阶段进度

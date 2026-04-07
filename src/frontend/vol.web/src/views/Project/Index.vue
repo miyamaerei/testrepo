@@ -77,6 +77,7 @@ import { ElMessage, ElMessageBox } from "element-plus";
 import type { ProjectRepository } from "@/types/kanban";
 import {
   getProjectList,
+  getProjectById,
   createProject,
   updateProject,
   deleteProject,
@@ -110,19 +111,16 @@ const handleAdd = () => {
   dialogVisible.value = true;
 };
 
-const handleEdit = (row: ProjectRepository) => {
+const handleEdit = async (row: ProjectRepository) => {
   isEdit.value = true;
   currentEditId.value = row.Id;
-  Object.assign(formData, {
-    Id: row.Id,
-    Name: row.Name,
-    LocalWorkingDir: row.LocalWorkingDir,
-    GitRemoteUrl: row.GitRemoteUrl,
-    DefaultBranch: row.DefaultBranch,
-    Description: row.Description,
-    IsActive: row.IsActive,
-  });
-  dialogVisible.value = true;
+  const res = await getProjectById(row.Id);
+  if (res.code === 200) {
+    Object.assign(formData, res.data);
+    dialogVisible.value = true;
+  } else {
+    ElMessage.error("获取项目信息失败");
+  }
 };
 
 const handleDelete = (row: ProjectRepository) => {
