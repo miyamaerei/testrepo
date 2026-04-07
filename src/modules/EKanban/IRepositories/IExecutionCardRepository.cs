@@ -3,7 +3,7 @@ using VOL.Core.BaseProvider;
 
 namespace EKanban.IRepositories;
 
-public interface IExecutionCardRepository : IRepository<ExecutionCard>
+public interface IExecutionCardRepository : IRepository<ExecutionCard>, IDependency
 {
     /// <summary>
     /// 按状态分组获取所有卡片

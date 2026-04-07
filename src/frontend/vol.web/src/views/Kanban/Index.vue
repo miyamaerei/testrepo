@@ -276,7 +276,113 @@ const loadKanbanData = async () => {
   loading.value = true;
   try {
     const res = await api.getKanbanData();
-    cardsData.value = res.data || {};
+    // 转换接口返回的数据结构
+    const transformedData: Record<number, any[]> = {};
+    
+    // 处理不同状态的卡片
+    if (res && res.new) {
+      // 转换 new 状态的卡片
+      transformedData[0] = res.new.map((card: any) => ({
+        Id: card.id,
+        Title: card.title,
+        Description: card.description,
+        Status: card.status,
+        ExecutorType: card.executorType,
+        BoardWorkItemId: card.boardWorkItemId,
+        BoardId: card.boardId,
+        ProjectRepositoryId: card.projectRepositoryId,
+        SpecId: card.specId,
+        FailureCount: card.failureCount,
+        NeedsManualIntervention: card.needsManualIntervention,
+        InProgressStartedAt: card.inProgressStartTime,
+        CreatedAt: card.createdAt,
+        UpdatedAt: card.lastUpdated,
+        IsManualCreated: card.isManualCreated
+      }));
+    }
+    
+    // 处理其他可能的状态
+    if (res && res.ready) {
+      transformedData[1] = res.ready.map((card: any) => ({
+        Id: card.id,
+        Title: card.title,
+        Description: card.description,
+        Status: card.status,
+        ExecutorType: card.executorType,
+        BoardWorkItemId: card.boardWorkItemId,
+        BoardId: card.boardId,
+        ProjectRepositoryId: card.projectRepositoryId,
+        SpecId: card.specId,
+        FailureCount: card.failureCount,
+        NeedsManualIntervention: card.needsManualIntervention,
+        InProgressStartedAt: card.inProgressStartTime,
+        CreatedAt: card.createdAt,
+        UpdatedAt: card.lastUpdated,
+        IsManualCreated: card.isManualCreated
+      }));
+    }
+    
+    if (res && res.inProgress) {
+      transformedData[2] = res.inProgress.map((card: any) => ({
+        Id: card.id,
+        Title: card.title,
+        Description: card.description,
+        Status: card.status,
+        ExecutorType: card.executorType,
+        BoardWorkItemId: card.boardWorkItemId,
+        BoardId: card.boardId,
+        ProjectRepositoryId: card.projectRepositoryId,
+        SpecId: card.specId,
+        FailureCount: card.failureCount,
+        NeedsManualIntervention: card.needsManualIntervention,
+        InProgressStartedAt: card.inProgressStartTime,
+        CreatedAt: card.createdAt,
+        UpdatedAt: card.lastUpdated,
+        IsManualCreated: card.isManualCreated
+      }));
+    }
+    
+    if (res && res.completed) {
+      transformedData[4] = res.completed.map((card: any) => ({
+        Id: card.id,
+        Title: card.title,
+        Description: card.description,
+        Status: card.status,
+        ExecutorType: card.executorType,
+        BoardWorkItemId: card.boardWorkItemId,
+        BoardId: card.boardId,
+        ProjectRepositoryId: card.projectRepositoryId,
+        SpecId: card.specId,
+        FailureCount: card.failureCount,
+        NeedsManualIntervention: card.needsManualIntervention,
+        InProgressStartedAt: card.inProgressStartTime,
+        CreatedAt: card.createdAt,
+        UpdatedAt: card.lastUpdated,
+        IsManualCreated: card.isManualCreated
+      }));
+    }
+    
+    if (res && res.failed) {
+      transformedData[5] = res.failed.map((card: any) => ({
+        Id: card.id,
+        Title: card.title,
+        Description: card.description,
+        Status: card.status,
+        ExecutorType: card.executorType,
+        BoardWorkItemId: card.boardWorkItemId,
+        BoardId: card.boardId,
+        ProjectRepositoryId: card.projectRepositoryId,
+        SpecId: card.specId,
+        FailureCount: card.failureCount,
+        NeedsManualIntervention: card.needsManualIntervention,
+        InProgressStartedAt: card.inProgressStartTime,
+        CreatedAt: card.createdAt,
+        UpdatedAt: card.lastUpdated,
+        IsManualCreated: card.isManualCreated
+      }));
+    }
+    
+    cardsData.value = transformedData;
   } catch (e) {
     ElMessage.error('加载看板数据失败');
     console.error(e);

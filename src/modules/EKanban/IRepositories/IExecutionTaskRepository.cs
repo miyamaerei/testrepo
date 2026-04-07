@@ -4,7 +4,7 @@ using VOL.Entity.DomainModels;
 
 namespace EKanban.IRepositories
 {
-    public partial interface IExecutionTaskRepository : IRepository<EKanban.Models.ExecutionTask>
+    public partial interface IExecutionTaskRepository : IRepository<EKanban.Models.ExecutionTask>, IDependency
     {
     }
 }
