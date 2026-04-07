@@ -23,12 +23,15 @@ public class CopilotCliClient : ICopilotCliClient, IDependency
         _copilotPath = _configuration["AiExecution:CopilotPath"] ?? "copilot";
     }
 
-    public async Task<string> ExecutePromptAsync(string prompt)
+    public async Task<string> ExecutePromptAsync(string prompt, string workingDirectory = null)
     {
         _logger.LogInformation("Executing prompt via Copilot CLI");
 
         var tempFile = System.IO.Path.GetTempFileName();
         await System.IO.File.WriteAllTextAsync(tempFile, prompt, Encoding.UTF8);
+
+        // 使用参数指定的工作目录，或使用默认目录
+        string workingDir = workingDirectory ?? AppContext.BaseDirectory;
 
         var process = new Process
         {
@@ -40,7 +43,7 @@ public class CopilotCliClient : ICopilotCliClient, IDependency
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 CreateNoWindow = true,
-                WorkingDirectory = AppContext.BaseDirectory
+                WorkingDirectory = workingDir
             },
             EnableRaisingEvents = true
         };

@@ -1,10 +1,12 @@
 using System;
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using EKanban.IRepositories;
 using EKanban.IServices;
 using EKanban.Models;
 using EKanban.Specs;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using VOL.Core.Extensions.AutofacManager;
 
@@ -17,6 +19,8 @@ public class AiExecutionService : IAiExecutionService, IDependency
     private readonly IStateMachineService _stateMachineService;
     private readonly ISubmitService _submitService;
     private readonly ICopilotCliClient _copilotCli;
+    private readonly IProjectRepositoriesRepository _projectRepositoriesRepository;
+    private readonly IConfiguration _configuration;
     private readonly ILogger<AiExecutionService> _logger;
 
     public AiExecutionService(
@@ -25,6 +29,8 @@ public class AiExecutionService : IAiExecutionService, IDependency
         IStateMachineService stateMachineService,
         ISubmitService submitService,
         ICopilotCliClient copilotCli,
+        IProjectRepositoriesRepository projectRepositoriesRepository,
+        IConfiguration configuration,
         ILogger<AiExecutionService> logger)
     {
         _executionCardRepositories = executionCardRepositories;
@@ -32,6 +38,8 @@ public class AiExecutionService : IAiExecutionService, IDependency
         _stateMachineService = stateMachineService;
         _submitService = submitService;
         _copilotCli = copilotCli;
+        _projectRepositoriesRepository = projectRepositoriesRepository;
+        _configuration = configuration;
         _logger = logger;
     }
 
@@ -77,11 +85,21 @@ public class AiExecutionService : IAiExecutionService, IDependency
             // Refresh the card after state transition
             card = await _executionCardRepositories.FindFirstAsync(p => p.Id == card.Id);
 
+            // 确定工作目录
+            string workingDirectory = GetWorkingDirectory(card);
+            
+            // 验证工作目录
+            if (!Directory.Exists(workingDirectory))
+            {
+                _logger.LogError("Working directory does not exist: {WorkingDirectory}", workingDirectory);
+                throw new Exception($"Working directory does not exist: {workingDirectory}");
+            }
+
             // Build the execution prompt
             var prompt = BuildExecutionPrompt(card);
 
-            // Execute via Copilot CLI
-            var output = await _copilotCli.ExecutePromptAsync(prompt);
+            // Execute via Copilot CLI，传递工作目录
+            var output = await _copilotCli.ExecutePromptAsync(prompt, workingDirectory);
 
             // Submit the result automatically
             var result = await _submitService.SubmitExecutionResultAsync(
@@ -139,5 +157,26 @@ public class AiExecutionService : IAiExecutionService, IDependency
         prompt.AppendLine("你的执行结果：");
 
         return prompt.ToString();
+    }
+
+    /// <summary>
+    /// 获取工作目录
+    /// </summary>
+    /// <param name="card">执行卡片</param>
+    /// <returns>工作目录路径</returns>
+    private string GetWorkingDirectory(ExecutionCard card)
+    {
+        // 如果卡片绑定了项目，使用项目的本地目录
+        if (card.ProjectRepositoryId.HasValue)
+        {
+            var projectRepository = _projectRepositoriesRepository.FindFirst(p => p.Id == card.ProjectRepositoryId.Value);
+            if (projectRepository != null && !string.IsNullOrEmpty(projectRepository.LocalWorkingDir))
+            {
+                return projectRepository.LocalWorkingDir;
+            }
+        }
+        
+        // 否则使用全局配置的工作目录
+        return _configuration.GetValue<string>("CopilotCli:WorkingDirectory", "C:\\repo");
     }
 }

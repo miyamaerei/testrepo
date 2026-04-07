@@ -5,26 +5,12 @@ using VOL.Entity.DomainModels;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using EKanban.IRepositories;
+using VOL.Core.Extensions.AutofacManager;
 
 namespace EKanban.Services
 {
     public partial class ExecutionCardService : IExecutionCardService
     {
-        private readonly ITaskPhaseProgressRepository _phaseProgressRepository;
-        private readonly ITaskFileChangeRepository _fileChangeRepository;
-        private readonly IProjectRepositoriesRepository _projectRepository;
-
-        public ExecutionCardService(
-            IExecutionCardRepository repository,
-            ITaskPhaseProgressRepository phaseProgressRepository,
-            ITaskFileChangeRepository fileChangeRepository,
-            IProjectRepositoriesRepository projectRepository)
-            : base(repository)
-        {
-            _phaseProgressRepository = phaseProgressRepository;
-            _fileChangeRepository = fileChangeRepository;
-            _projectRepository = projectRepository;
-        }
 
         public async Task<List<EKanban.Models.ExecutionCard>> GetInProgressAiCardsAsync()
         {
