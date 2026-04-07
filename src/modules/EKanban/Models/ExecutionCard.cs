@@ -136,5 +136,5 @@ public class ExecutionCard : BaseEntity
     /// <summary>
     /// 关联的项目仓库 ID
     /// </summary>
-    public int? ProjectRepositoriesId { get; set; }
+    public int? ProjectRepositoryId { get; set; }
 }

@@ -3,10 +3,11 @@ using VOL.Core.BaseProvider;
 using VOL.Core.DbContext;
 using EKanban.Models;
 using EKanban.IRepositories;
+using VOL.Core.Extensions.AutofacManager;
 
 namespace EKanban.Repositories;
 
-public class ExecutionCardRepository : RepositoryBase<ExecutionCard>, IExecutionCardRepository
+public class ExecutionCardRepository : RepositoryBase<ExecutionCard>, IExecutionCardRepository, IDependency
 {
     public ExecutionCardRepository(VOLContext dbContext) : base(dbContext)
     {
