@@ -23,6 +23,18 @@ namespace EKanban.Services
         {
             Init(repository);
         }
+        
+        // 用于依赖注入的构造函数
+        public ExecutionCardService(
+            IExecutionCardRepository repository,
+            ITaskPhaseProgressRepository phaseProgressRepository,
+            ITaskFileChangeRepository fileChangeRepository,
+            IProjectRepositoriesRepository projectRepository)
+            : base(repository)
+        {
+            Init(repository);
+        }
+        
         public static IExecutionCardService Instance
         {
             get { return AutofacContainerModule.GetService<IExecutionCardService>(); }

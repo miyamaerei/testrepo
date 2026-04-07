@@ -34,6 +34,27 @@ namespace VOL.WebApi.Controllers.EKanban
             return Ok(data);
         }
 
+        /// <summary>
+        /// 获取卡片详情（包含阶段进度和文件变更）
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> GetDetail(int id)
+        {
+            try
+            {
+                var detail = await _service.GetDetailAsync(id);
+                return Ok(VOL.Core.Utilities.WebResponseContent.Instance.OK("获取卡片详情成功", detail));
+            }
+            catch (System.ArgumentException ex)
+            {
+                return Ok(VOL.Core.Utilities.WebResponseContent.Instance.Error(ex.Message));
+            }
+            catch (System.Exception ex)
+            {
+                return Ok(VOL.Core.Utilities.WebResponseContent.Instance.Error("获取卡片详情失败: " + ex.Message));
+            }
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetKanbanData()
         {

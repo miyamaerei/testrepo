@@ -10,6 +10,22 @@ namespace EKanban.Services
 {
     public partial class ExecutionCardService : IExecutionCardService
     {
+        private readonly ITaskPhaseProgressRepository _phaseProgressRepository;
+        private readonly ITaskFileChangeRepository _fileChangeRepository;
+        private readonly IProjectRepositoriesRepository _projectRepository;
+
+        public ExecutionCardService(
+            IExecutionCardRepository repository,
+            ITaskPhaseProgressRepository phaseProgressRepository,
+            ITaskFileChangeRepository fileChangeRepository,
+            IProjectRepositoriesRepository projectRepository)
+            : base(repository)
+        {
+            _phaseProgressRepository = phaseProgressRepository;
+            _fileChangeRepository = fileChangeRepository;
+            _projectRepository = projectRepository;
+        }
+
         public async Task<List<EKanban.Models.ExecutionCard>> GetInProgressAiCardsAsync()
         {
             return await ((IExecutionCardRepository)repository).GetInProgressAiCardsAsync();
@@ -184,6 +200,83 @@ namespace EKanban.Services
                 .ToList();
             
             return (cards, total);
+        }
+
+        /// <summary>
+        /// 获取卡片详情（包含阶段进度和文件变更）
+        /// </summary>
+        /// <param name="id">卡片ID</param>
+        /// <returns>卡片详情</returns>
+        public async Task<ExecutionCardDetailResponse> GetDetailAsync(int id)
+        {
+            var card = await ((IExecutionCardRepository)repository).FindFirstAsync(c => c.Id == id);
+            if (card == null)
+            {
+                throw new System.ArgumentException($"Card {id} not found");
+            }
+
+            // 获取阶段进度
+            var phaseProgressList = await _phaseProgressRepository.GetByExecutionCardIdAsync(id);
+            
+            // 获取文件变更
+            var fileChangeList = await _fileChangeRepository.GetByExecutionCardIdAsync(id);
+            
+            // 获取关联的项目信息
+            ProjectRepositories projectRepository = null;
+            if (card.ProjectRepositoryId.HasValue)
+            {
+                projectRepository = await _projectRepository.FindFirstAsync(p => p.Id == card.ProjectRepositoryId.Value);
+            }
+
+            // 构建返回数据结构
+            var response = new ExecutionCardDetailResponse
+            {
+                Id = card.Id,
+                Title = card.Title,
+                Description = card.Description,
+                Status = (int)card.Status,
+                ExecutorType = (int)card.ExecutorType,
+                BoardWorkItemId = card.BoardWorkItemId,
+                BoardId = card.BoardId,
+                ProjectRepositoryId = card.ProjectRepositoryId,
+                SpecId = card.SpecId,
+                FailureCount = card.FailureCount,
+                NeedsManualIntervention = card.NeedsManualIntervention,
+                InProgressStartedAt = card.InProgressStartTime,
+                CreatedAt = card.CreatedAt,
+                UpdatedAt = card.LastUpdated,
+                IsManualCreated = card.IsManualCreated,
+                PhaseProgressList = phaseProgressList.Select(p => new PhaseProgressResponse
+                {
+                    Id = p.Id,
+                    ExecutionCardId = p.ExecutionCardId,
+                    Phase = (int)p.Phase,
+                    Status = (int)p.Status,
+                    StartedAt = p.StartedAt,
+                    CompletedAt = p.CompletedAt,
+                    PhaseLog = p.Logs
+                }).ToList(),
+                FileChangeList = fileChangeList.Select(f => new FileChangeResponse
+                {
+                    Id = f.Id,
+                    ExecutionCardId = f.ExecutionCardId,
+                    FilePath = f.FilePath,
+                    ChangeType = (int)f.ChangeType,
+                    CommitHash = f.CommitHash,
+                    ChangedAt = f.ChangedAt
+                }).ToList(),
+                ProjectRepository = projectRepository != null ? new ProjectRepositoryResponse
+                {
+                    Id = projectRepository.Id,
+                    Name = projectRepository.Name,
+                    LocalWorkingDir = projectRepository.LocalWorkingDir,
+                    GitRemoteUrl = projectRepository.GitRemoteUrl,
+                    DefaultBranch = projectRepository.DefaultBranch,
+                    Description = projectRepository.Description
+                } : null
+            };
+
+            return response;
         }
     }
 }
