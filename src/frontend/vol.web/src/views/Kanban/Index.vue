@@ -33,114 +33,13 @@
       </div>
     </div>
 
-    <!-- 详情对话框 -->
-    <el-dialog v-model="detailDialogVisible" title="卡片详情" width="70%" v-loading="detailLoading">
-      <div v-if="currentCardDetail" class="detail-content">
-        <el-tabs v-model="activeTab">
-          <!-- 基本信息标签页 -->
-          <el-tab-pane label="基本信息" name="basic">
-            <el-descriptions :column="2" border>
-              <el-descriptions-item label="标题" :span="2">{{ currentCardDetail.Title }}</el-descriptions-item>
-              <el-descriptions-item label="ID">{{ currentCardDetail.Id }}</el-descriptions-item>
-              <el-descriptions-item label="状态">{{ getStatusText(currentCardDetail.Status) }}</el-descriptions-item>
-              <el-descriptions-item label="执行者">{{ getExecutorText(currentCardDetail.ExecutorType) }}</el-descriptions-item>
-              <el-descriptions-item label="失败次数">{{ currentCardDetail.FailureCount }}</el-descriptions-item>
-              <el-descriptions-item label="需要人工干预">
-                <el-tag :type="currentCardDetail.NeedsManualIntervention ? 'danger' : 'success'">
-                  {{ currentCardDetail.NeedsManualIntervention ? '是' : '否' }}
-                </el-tag>
-              </el-descriptions-item>
-              <el-descriptions-item v-if="currentCardDetail.projectRepository" label="关联项目">
-                {{ currentCardDetail.projectRepository.Name }}
-              </el-descriptions-item>
-              <el-descriptions-item label="创建时间">{{ formatDate(currentCardDetail.CreatedAt) }}</el-descriptions-item>
-              <el-descriptions-item label="更新时间">{{ formatDate(currentCardDetail.UpdatedAt) }}</el-descriptions-item>
-            </el-descriptions>
 
-            <div v-if="currentCardDetail.Description" class="detail-section">
-              <h4>描述</h4>
-              <p>{{ currentCardDetail.Description }}</p>
-            </div>
-
-            <div v-if="currentCardDetail.projectRepository" class="detail-section">
-              <h4>项目信息</h4>
-              <el-descriptions :column="1" border>
-                <el-descriptions-item label="项目名称">{{ currentCardDetail.projectRepository.Name }}</el-descriptions-item>
-                <el-descriptions-item label="本地工作目录">{{ currentCardDetail.projectRepository.LocalWorkingDir }}</el-descriptions-item>
-                <el-descriptions-item v-if="currentCardDetail.projectRepository.GitRemoteUrl" label="Git 远程地址">
-                  {{ currentCardDetail.projectRepository.GitRemoteUrl }}
-                </el-descriptions-item>
-                <el-descriptions-item label="默认分支">{{ currentCardDetail.projectRepository.DefaultBranch }}</el-descriptions-item>
-                <el-descriptions-item v-if="currentCardDetail.projectRepository.Description" label="描述">
-                  {{ currentCardDetail.projectRepository.Description }}
-                </el-descriptions-item>
-              </el-descriptions>
-            </div>
-          </el-tab-pane>
-
-          <!-- 阶段进度标签页 -->
-          <el-tab-pane label="阶段进度" name="phase">
-            <div class="phase-list">
-              <el-timeline>
-                <el-timeline-item
-                  v-for="phase in sortedPhaseProgress"
-                  :key="phase.Id"
-                  :timestamp="formatPhaseTime(phase)"
-                  :color="getPhaseStatusColor(phase.Status)"
-                >
-                  <el-card>
-                    <div class="phase-header">
-                      <span class="phase-name">{{ getPhaseName(phase.Phase) }}</span>
-                      <el-tag :type="getPhaseStatusType(phase.Status)">
-                        {{ getPhaseStatusText(phase.Status) }}
-                      </el-tag>
-                    </div>
-                    <div v-if="phase.PhaseLog" class="phase-log">
-                      <el-collapse-transition>
-                        <div v-show="phase.expanded">{{ phase.PhaseLog }}</div>
-                      </el-collapse-transition>
-                      <el-link
-                        type="primary"
-                        :underline="false"
-                        @click="phase.expanded = !phase.expanded"
-                      >
-                        {{ phase.expanded ? '收起日志' : '展开日志' }}
-                      </el-link>
-                    </div>
-                  </el-card>
-                </el-timeline-item>
-              </el-timeline>
-            </div>
-          </el-tab-pane>
-
-          <!-- 文件变更标签页 -->
-          <el-tab-pane label="文件变更" name="file">
-            <el-table :data="currentCardDetail.fileChangeList" border style="width: 100%">
-              <el-table-column prop="FilePath" label="文件路径" min-width="300" />
-              <el-table-column prop="ChangeType" label="变更类型" width="120">
-                <template #default="{ row }">
-                  <el-tag :type="getChangeTypeTag(row.ChangeType)">
-                    {{ getChangeTypeName(row.ChangeType) }}
-                  </el-tag>
-                </template>
-              </el-table-column>
-              <el-table-column prop="CommitHash" label="Commit Hash" width="100" />
-              <el-table-column prop="CommitMessage" label="提交信息" min-width="200" />
-              <el-table-column prop="ChangedAt" label="变更时间" width="160">
-                <template #default="{ row }">
-                  {{ formatDate(row.ChangedAt) }}
-                </template>
-              </el-table-column>
-            </el-table>
-          </el-tab-pane>
-        </el-tabs>
-      </div>
-    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
+import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { Refresh } from '@element-plus/icons-vue';
 import KanbanCard from '@/components/Kanban/KanbanCard.vue';
@@ -157,12 +56,8 @@ import type {
 } from '@/types/kanban';
 import * as api from '@/api/kanban';
 
+const router = useRouter();
 const loading = ref(false);
-const detailDialogVisible = ref(false);
-const detailLoading = ref(false);
-const activeTab = ref('basic');
-const currentCard = ref<ExecutionCard | null>(null);
-const currentCardDetail = ref<ExecutionCardDetail | null>(null);
 const cardsData = ref<KanbanData>({});
 
 const columns = [
@@ -263,14 +158,7 @@ const formatPhaseTime = (phase: TaskPhaseProgress): string => {
   return '';
 };
 
-// 对阶段进度按顺序排序
-const sortedPhaseProgress = computed(() => {
-  if (!currentCardDetail.value?.phaseProgressList) return [];
-  // 添加 expanded 属性用于展开日志
-  return currentCardDetail.value.phaseProgressList
-    .sort((a, b) => a.Phase - b.Phase)
-    .map(p => ({ ...p, expanded: false }));
-});
+
 
 const loadKanbanData = async () => {
   loading.value = true;
@@ -424,22 +312,9 @@ const onTriggerReExecute = async (id: number) => {
   }
 };
 
-const onViewDetail = async (card: ExecutionCard) => {
-  currentCard.value = card;
-  activeTab.value = 'basic';
-  detailDialogVisible.value = true;
-  detailLoading.value = true;
-  try {
-    const res = await api.getExecutionCardDetail(card.Id);
-    if (res.code === 200) {
-      currentCardDetail.value = res.data;
-    }
-  } catch (e) {
-    ElMessage.error('加载卡片详情失败');
-    console.error(e);
-  } finally {
-    detailLoading.value = false;
-  }
+const onViewDetail = (card: ExecutionCard) => {
+  // 跳转到详情页面
+  router.push(`/kanban/detail/${card.Id}`);
 };
 
 onMounted(() => {

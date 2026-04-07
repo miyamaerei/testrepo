@@ -84,6 +84,12 @@ const routes = [
             name: 'manualKanban',
             component: () => import('@/views/Kanban/ManualKanbanPage.vue'),
             meta: { title: '手动看板管理', icon: 'el-icon-edit' }
+          },
+          {
+            path: 'detail/:id',
+            name: 'kanbanDetail',
+            component: () => import('@/views/Kanban/Detail.vue'),
+            meta: { title: '卡片详情' }
           }
         ]
       }
