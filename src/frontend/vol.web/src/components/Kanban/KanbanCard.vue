@@ -2,7 +2,12 @@
   <el-card class="kanban-card" :class="{ 'needs-manual': card.NeedsManualIntervention, 'manual-created': card.IsManualCreated }">
     <template #header>
       <div class="card-header">
-        <span class="card-title">{{ card.Title }}</span>
+        <div class="title-container">
+          <span class="card-title">{{ card.Title }}</span>
+          <el-tag v-if="card.projectRepository" size="small" type="primary" style="margin-left: 8px">
+            {{ card.projectRepository.Name }}
+          </el-tag>
+        </div>
         <div class="header-right">
           <el-tag v-if="card.IsManualCreated" size="small" type="info" style="margin-right: 8px">
             手动创建
@@ -15,6 +20,20 @@
     <div class="card-body">
       <div v-if="card.Description" class="card-description">
         {{ card.Description }}
+      </div>
+
+      <div v-if="card.projectRepository" class="project-info">
+        <el-divider content-position="left" class="project-divider">项目信息</el-divider>
+        <div class="project-details">
+          <div class="project-item">
+            <span class="project-label">项目名称:</span>
+            <span class="project-value">{{ card.projectRepository.Name }}</span>
+          </div>
+          <div class="project-item">
+            <span class="project-label">本地路径:</span>
+            <span class="project-value">{{ card.projectRepository.LocalWorkingDir }}</span>
+          </div>
+        </div>
       </div>
 
       <div class="card-meta">
@@ -193,5 +212,44 @@ const onViewDetail = () => {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
+}
+
+.title-container {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.project-info {
+  margin: 12px 0;
+  padding: 10px;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+}
+
+.project-divider {
+  margin: 0 0 10px 0;
+}
+
+.project-details {
+  font-size: 13px;
+}
+
+.project-item {
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+}
+
+.project-label {
+  font-weight: 500;
+  margin-right: 8px;
+  color: #666;
+  min-width: 80px;
+}
+
+.project-value {
+  color: #333;
+  word-break: break-all;
 }
 </style>

@@ -79,6 +79,16 @@ export function getManualCards(params: {
   return request.get("/api/ekanban/ExecutionCard/GetManualCards", { params });
 }
 
+// 获取项目列表
+export function getProjectList() {
+  return request.get("/api/ekanban/ProjectRepositories/GetList");
+}
+
+// 获取项目详情
+export function getProjectDetail(id: number) {
+  return request.get(`/api/ekanban/ProjectRepositories/GetById?id=${id}`);
+}
+
 export default {
   getKanbanData,
   getExecutionCardById,
@@ -91,5 +101,7 @@ export default {
   createManualCard,
   updateManualCard,
   deleteManualCard,
-  getManualCards
+  getManualCards,
+  getProjectList,
+  getProjectDetail
 };
